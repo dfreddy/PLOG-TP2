@@ -27,6 +27,7 @@ fechadura([A,B,C]):-
 	B #= B1*10 + B2,
 	B1 mod 2 #= B2 mod 2,
 	labeling([], [A,B,C]).
+
 	
 %Exercicio5
 
@@ -39,6 +40,7 @@ forte([S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12]):-
 	sum([S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12], #= , 12),
 	labeling([], [S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12]).
 
+	
 %Exercicio2
 
 zebra(Zebra, Water):-
@@ -78,3 +80,48 @@ zebra(Zebra, Water):-
 	%Search
 	labeling([], List),
 	write(Solution).
+	
+
+%Exercicio3
+
+% 4x4
+fourqueens(Cols):-
+	Cols = [C1, C2, C3, C4],
+	domain(Cols, 1, 4),
+	all_distinct(Cols),		%C1 #\= C2	etc..
+	
+	%noattack
+	C1 #\= C2+1, C1 #\= C2-1, C1 #\= C3+2, C1 #\= C3-2,  C1 #\= C4+3, C1 #\= C4-3,
+	C2 #\= A3+1, C2 #\= A3-1, C2 #\= A4+2, C2 #\= A4-2,
+	A3 #\= A4+1, A3 #\= A4-1,
+	
+	labeling([], Cols).
+
+% Generalized
+nqueens(N, Cols):-
+	length(Cols, N),
+	domain(Cols, 1, N),
+	constrain(Cols),
+	labeling([], Cols).
+	
+constrain([]).
+constrain([H|RCols]):-
+	safe(H, RCols, 1),
+	constrain(RCols).
+	
+safe(_, [], _).
+safe(X, [Y|T], K):-
+	noattack(X, Y, K),
+	K1 is K+1,
+	safe(X, T, K1).
+	
+noattack(X, Y, K):-
+	X #\= Y,
+	X #\= Y + K,
+	X #\= Y - K.
+
+
+
+
+
+
