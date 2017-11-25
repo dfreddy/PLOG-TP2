@@ -1,6 +1,7 @@
 :- use_module(library(clpfd)).
 
-%4
+%Exercicio4
+
 puzzle([S,E,N,D,M,O,R,Y]):-
 	domain([S,E,N,D,M,O,R,Y], 0, 9),
 	S #> 0, M #> 0,
@@ -27,7 +28,8 @@ fechadura([A,B,C]):-
 	B1 mod 2 #= B2 mod 2,
 	labeling([], [A,B,C]).
 	
-%5
+%Exercicio5
+
 forte([S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12]):-
 	domain([S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12], 0, 5),
 	S1+S2+S3+S4 #= 5,
@@ -36,3 +38,43 @@ forte([S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12]):-
 	S10+S11+S12+S1 #= 5,
 	sum([S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12], #= , 12),
 	labeling([], [S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12]).
+
+%Exercicio2
+
+zebra(Zebra, Water):-
+	%Variables
+	Solution = [Nationality, Animal, Drink, Colour, Cigs],
+	Nationality = [UK, ES, NOR, UKR, PT],
+	Animal = [Dog, Fox, Iguana, Horse, Zebra],
+	Drink = [Juice, Tea, Coffee, Milk, Water],
+	Colour = [Red, Green, White, Yellow, Blue],
+	Cigs = [Chester, Winston, LS, SG, Marlboro],
+	%flatten(Sol, List),
+	List = [UK, ES, NOR, UKR, PT, Dog, Fox, Iguana, Horse, Zebra, Juice, Tea, Coffee, Milk, Water, Red, Green, White, Yellow, Blue, Chester, Winston, LS, SG, Marlboro],
+	domain(List, 1, 5), %5Houses
+	
+	%Restrictions
+	all_different(Nationality),
+	all_different(Animal),
+	all_different(Drink),
+	all_different(Colour),
+	all_different(Cigs),
+	
+	UK #= Red,
+	ES #= Dog,
+	NOR #= 1,
+	Yellow #= Marlboro,
+	abs(Chester - Fox) #= 1,
+	abs(NOR - Blue) #= 1,
+	Winston #= Iguana,
+	LS #= Juice,
+	UKR #= Tea,
+	PT #= SG,
+	abs(Marlboro - Horse) #= 2,
+	Green #= Coffee,
+	Green - White #= 1,
+	Milk #= 3,
+	
+	%Search
+	labeling([], List),
+	write(Solution).
