@@ -90,7 +90,6 @@ find_optimal(Group, GroupLength, Initial, Vars, VT, Limit):-
 %	check_for_optimal(Group, InitialTotal, K1)
 %	).
 
-
 %New way to check for optimals: member variation.
 %First get all member variation in  a list Vars and assign variations binarily
 variation_list([], [], []).
@@ -98,7 +97,7 @@ variation_list([G|Group], [I|Initial], [V|Vars]):-
 	(abs(G-I) #= 0,
 	V #= 0;
 	V #= 1
-	),
+	),% ou usar materializaçao ( abs(G-I) #\= 0 #<=> V )
 	variation_list(Group, Initial, Vars).
 	
 optimal_var([], _, 0).
@@ -107,3 +106,8 @@ optimal_var(Vars, K, VT):-
 	VT #<= K;
 	K1 is K+1,
 	optimal_var(Vars, K1, VT).
+	
+% TRY iterating over find_optimal on the main() and incrementing K there, instead of inside the find_optimal() cycle
+% APPEND/2 flattens listoflists1 into list2
+% para o tratamento de varios grupos em vez de só um, TRY append(ListOfGroups, ListOfEveryone), labeling([], ListOfEveryone), mas return ListOfGroups
+% TRY minimize(labeling([], Group), VT) para ter o resultado com o minimo de variaçao, em vez de incrementar o K no optimal_var()
