@@ -49,27 +49,27 @@ seat_condition(M, GM, N):-
 %Now with a given initial seating for the group
 %Must choose the most optimal, least seat changing option
 %abs(sumlist(Option) - sumlist(Initial)) must be as small as possible
-%Iterate using a starting Difference=1 and increment it each failed try
+%Returns the best possible solution
 %%%%Vars and VT are used for debugging %%%%%%%%%%%%%%%%
-%%%%+Seats, +Initial, +Limit, -Group, -Vars, -VT %%%%%%%%%%%%%%%%
-%Test with groupRedis(5, [1,3,5], 1, Group, Vars, VT)
-%and groupRedis(7, [1,4,7], 1, Group, Vars, VT
-groupRedis(Seats, Initial, Limit, Group, Vars, VT):-
+%%%%+Seats, +Initial, -Group, -Vars, -VT %%%%%%%%%%%%%%%%
+%Test with groupRedis(5, [1,3,5], Group, Vars, VT).
+%and groupRedis(7, [1,4,7], Group, Vars, VT).
+groupRedis(Seats, Initial, Group, Vars, VT):-
 	%Variables
 	length(Initial, GroupLength),
 	length(Group, GroupLength),
 	domain(Group, 1, Seats),
 	%sumlist(Initial, InitialTotal),
 	
-	find_optimal(Group, GroupLength, Initial, Vars, VT, Limit),
-	labeling([], Group).
+	find_optimal(Group, GroupLength, Initial, Vars, VT),
+	labeling([minimize(VT), all], Group).
 
 %Finds a possible seating for the group. If it doesnt have minimal seat changes when compared to the initial seating, redo with a less optimal option
-find_optimal(Group, GroupLength, Initial, Vars, VT, Limit):-
+find_optimal(Group, GroupLength, Initial, Vars, VT):-
 	group_seating(Group, GroupLength),
 	
 	variation_list(Group, Initial, Vars),
-	optimal_var(Vars, Limit, VT).
+	sum(Vars, #= , VT).
 	
 	%sumlist(Group, GroupTotal),
 	%abs(GroupTotal - InitialTotal) #> K.
@@ -94,18 +94,15 @@ find_optimal(Group, GroupLength, Initial, Vars, VT, Limit):-
 %First get all member variation in  a list Vars and assign variations binarily
 variation_list([], [], []).
 variation_list([G|Group], [I|Initial], [V|Vars]):-
-	(abs(G-I) #= 0,
-	V #= 0;
-	V #= 1
-	),% ou usar materializaçao ( abs(G-I) #\= 0 #<=> V )
+	(abs(G-I) #\= 0 #<=> V),
 	variation_list(Group, Initial, Vars).
-	
-optimal_var([], _, 0).
-optimal_var(Vars, K, VT):-
-	sum(Vars, #=, VT), !,
-	VT #<= K;
-	K1 is K+1,
-	optimal_var(Vars, K1, VT).
+
+%optimal_var([], _, 0).
+%optimal_var(Vars, K, VT):-
+%	sum(Vars, #=, VT), !,
+%	VT #<= K;
+%	K1 is K+1,
+%	optimal_var(Vars, K1, VT).
 	
 % TRY iterating over find_optimal on the main() and incrementing K there, instead of inside the find_optimal() cycle
 % APPEND/2 flattens listoflists1 into list2
