@@ -62,7 +62,8 @@ groupRedis(Seats, Initial, Group, Vars, VT):-
 	%sumlist(Initial, InitialTotal),
 	
 	find_optimal(Group, GroupLength, Initial, Vars, VT),
-	labeling([minimize(VT), all], Group).
+	
+	minimize(labeling([all], Group),VT).
 
 %Finds a possible seating for the group. If it doesnt have minimal seat changes when compared to the initial seating, redo with a less optimal option
 find_optimal(Group, GroupLength, Initial, Vars, VT):-
@@ -94,8 +95,19 @@ find_optimal(Group, GroupLength, Initial, Vars, VT):-
 %First get all member variation in  a list Vars and assign variations binarily
 variation_list([], [], []).
 variation_list([G|Group], [I|Initial], [V|Vars]):-
-	(abs(G-I) #\= 0 #<=> V),
+	(abs(G-I) #\= 0 #<=> V), %ou (V #= abs(G-I))
 	variation_list(Group, Initial, Vars).
+
+%%%%%%%%%%%%% READ ME PLS %%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%% READ ME PLS %%%%%%%%%%%%%%%%%%%%%%
+%DAVID ----> Com esta implementacao, tenta-se obter o menor numero de mudancas, com (V #= abs(G-I)) obtem-se a mudanca mais pequena possivel. 
+% Ex. Grupo com lugares iniciais [1,99] - com (abs(G-I) #\= 0 #<=> V) obtem-se [1,2] / [98,99]
+%										- com (V #= abs(G-I)) obtem-se [49,50] (duas mudancas, mas mais pequenas)
+% Qual destas implementacoes é a melhor???
+%%%%%%%%%%%%% READ ME PLS %%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%% READ ME PLS %%%%%%%%%%%%%%%%%%%%%%
+
+
 
 %optimal_var([], _, 0).
 %optimal_var(Vars, K, VT):-
@@ -108,3 +120,41 @@ variation_list([G|Group], [I|Initial], [V|Vars]):-
 % APPEND/2 flattens listoflists1 into list2
 % para o tratamento de varios grupos em vez de só um, TRY append(ListOfGroups, ListOfEveryone), labeling([], ListOfEveryone), mas return ListOfGroups
 % TRY minimize(labeling([], Group), VT) para ter o resultado com o minimo de variaçao, em vez de incrementar o K no optimal_var()
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Now with 2 groups of 4
+%Must choose the most optimal, least seat changing option
+%Returns the best possible solution
+%%%%Vars and VT are used for debugging %%%%%%%%%%%%%%%%
+%%%%+Seats, +Initial, -Group, -Vars, -VT %%%%%%%%%%%%%%%%
+%Test with groupRedis(5, [1,3,5], Group, Vars, VT).
+%and groupRedis(7, [1,4,7], Group, Vars, VT).
+
+multipleGroupRedis(Seats, Initials, Groups, Vars, VT) :-
+	Groups = [G1, G2],
+	length(G1, 4),
+	length(G2, 4),
+	domain(G1, 1, Seats),
+	domain(G2, 1, Seats),
+	find_optimal_groups(Initials, Groups, Vars, VTList),
+	sum(VTList, #= , VT),
+
+	minimize(labeling([], G1), VT).
+
+find_optimal_groups(_, [], [], []).
+find_optimal_groups([Initial|IRest], [Group|GRest], [Var|VRest], [VT|VTRest]) :-
+	length(Initial,GroupLength),
+	find_optimal(Group, GroupLength, Initial, Var, VT),
+	find_optimal_groups(IRest, GRest, VRest, VTRest).
+
+
+% Test query: multipleGroupRedis(20,[[1,3,5,7],[9,10,13,11]], Groups, Vars, VT).
+
+
+
+%TODO - Gerar Seats e Initials aleatoriamente e com dimensoes variadas
+
+% 1st- Find optimal for a group
+% 2nd- Check if seats not already taken (member of a list)
+% 3rd- Add to seats taken (append)
+% 4rd- Increment variation of group to total variation
