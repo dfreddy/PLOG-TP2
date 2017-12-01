@@ -139,8 +139,8 @@ multipleGroupRedis(Seats, Initials, Groups, Vars, VT) :-
 	all_distinct(SeatsTaken),
 	sum(VTList, #= , VT),
 
-	minimize(labeling([],G1),VT), %minimize(labeling([],G1),VT) esta a dar instantiation error, not sure why. Sem minimize ele da apenas a primeira solucao possivel que encontrar, sem tentar minimizar VT.
-	labeling([], G2).
+	append(Groups,GTotal),
+	minimize(labeling([],GTotal),VT).  %PROBLEM - Execution hangs when rejecting the first solution
 
 find_optimal_groups(_, [], [], [], []).
 find_optimal_groups([Initial|IRest], [Group|GRest], [Var|VRest], [VT|VTRest], SeatsTaken) :-
@@ -172,7 +172,8 @@ manyGroupRedis(Seats, Initials, Groups, Vars, VT) :-
 	all_distinct(SeatsTaken),
 	sum(VTList, #= , VT),
 
-	multiLabeling(Groups,VT). 
+	append(Groups,FlattenedGroups),
+	minimize(labeling([],FlattenedGroups),VT). %PROBLEM - Execution hangs when rejecting the first solution
 
 initialize([],[],_).
 initialize([Group|GRest], [Initial|IRest], Seats) :-
@@ -180,8 +181,3 @@ initialize([Group|GRest], [Initial|IRest], Seats) :-
 	length(Group, GroupSize),
 	domain(Group, 1, Seats),
 	initialize(GRest, IRest, Seats).
-
-multiLabeling([],_).
-multiLabeling([Group|GRest], VT) :-
-	labeling([],Group), %minimize(labeling([],G1),VT) esta a dar instantiation error, not sure why. Sem minimize ele da apenas a primeira solucao possivel que encontrar, sem tentar minimizar VT.
-	multiLabeling(GRest,VT).
