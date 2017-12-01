@@ -139,7 +139,7 @@ multipleGroupRedis(Seats, Initials, Groups, Vars, VT) :-
 	all_distinct(SeatsTaken),
 	sum(VTList, #= , VT),
 
-	labeling([], G1), %minimize(labeling([],G1),VT) esta a dar instantiation error
+	minimize(labeling([],G1),VT), %minimize(labeling([],G1),VT) esta a dar instantiation error, not sure why. Sem minimize ele da apenas a primeira solucao possivel que encontrar, sem tentar minimizar VT.
 	labeling([], G2).
 
 find_optimal_groups(_, [], [], [], []).
@@ -155,3 +155,33 @@ find_optimal_groups([Initial|IRest], [Group|GRest], [Var|VRest], [VT|VTRest], Se
 % 2nd- Check if seats not already taken (member of a list) - Done
 % 3rd- Add to seats taken (append) - Done
 % 4th- Increment variation of group to total variation - Done
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Now for many groups with many people
+%Must choose the most optimal, least seat changing option
+%Returns the best possible solution
+%%%%Vars and VT are used for debugging %%%%%%%%%%%%%%%%
+%%%%+Seats, +Initials, -Groups, -Vars, -VT %%%%%%%%%%%%%%%%
+%Test with manyGroupRedis(20,[[1,3,5,7,15],[9,10,13],[20,2,14],[15,16]], Groups, Vars, VT).
+
+manyGroupRedis(Seats, Initials, Groups, Vars, VT) :-
+	length(Initials, GroupNum),
+	length(Groups, GroupNum),
+	initialize(Groups, Initials, Seats),
+	find_optimal_groups(Initials, Groups, Vars, VTList, SeatsTaken),
+	all_distinct(SeatsTaken),
+	sum(VTList, #= , VT),
+
+	multiLabeling(Groups,VT). 
+
+initialize([],[],_).
+initialize([Group|GRest], [Initial|IRest], Seats) :-
+	length(Initial, GroupSize),
+	length(Group, GroupSize),
+	domain(Group, 1, Seats),
+	initialize(GRest, IRest, Seats).
+
+multiLabeling([],_).
+multiLabeling([Group|GRest], VT) :-
+	labeling([],Group), %minimize(labeling([],G1),VT) esta a dar instantiation error, not sure why. Sem minimize ele da apenas a primeira solucao possivel que encontrar, sem tentar minimizar VT.
+	multiLabeling(GRest,VT).
