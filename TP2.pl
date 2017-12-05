@@ -1,5 +1,6 @@
 :- use_module(library(clpfd)).
 :- use_module(library(lists)).
+:- use_module(library(random)).
 
 % First solve it to set parameters
 %Groups is passed as a list of sizes. The size of the Groups list is the amount of groups
@@ -140,7 +141,7 @@ multipleGroupRedis(Seats, Initials, Groups, Vars, VT) :-
 	sum(VTList, #= , VT),
 
 	append(Groups,GTotal),
-	minimize(labeling([],GTotal),VT).  %PROBLEM - Execution hangs when rejecting the first solution
+	minimize(labeling([],GTotal),VT).
 
 find_optimal_groups(_, [], [], [], []).
 find_optimal_groups([Initial|IRest], [Group|GRest], [Var|VRest], [VT|VTRest], SeatsTaken) :-
@@ -173,7 +174,7 @@ manyGroupRedis(Seats, Initials, Groups, Vars, VT) :-
 	sum(VTList, #= , VT),
 
 	append(Groups,FlattenedGroups),
-	minimize(labeling([],FlattenedGroups),VT). %PROBLEM - Execution hangs when rejecting the first solution
+	minimize(labeling([],FlattenedGroups),VT).
 
 initialize([],[],_).
 initialize([Group|GRest], [Initial|IRest], Seats) :-
@@ -181,3 +182,37 @@ initialize([Group|GRest], [Initial|IRest], Seats) :-
 	length(Group, GroupSize),
 	domain(Group, 1, Seats),
 	initialize(GRest, IRest, Seats).
+
+%TODO: visualizacao da plateia.
+%Ex: 77777*&&&&&////!!
+%	 99931111111||||||
+%	 00005555588888822
+%	 44477777.....6666
+%
+
+manyGroupsRandomized(Groups, MaxSeats, MaxGroupElem/*,Vars,VT*/) :-
+	random(10,MaxSeats,Seats),
+	random(2,MaxGroupElem,MaxGroups),
+	geraGruposAleatorios(MaxGroups,Seats,Initials,0),
+	print(Initials),
+	manyGroupRedis(Seats, Initials, Groups, _ , _ /*,Vars, VT*/).
+
+geraGrupo(_,TamGrupo,[],TamGrupo) :- !.
+geraGrupo(Seats,TamGrupo,[Seat|Rest],TamAtual) :-
+	random(1,Seats,Seat),
+	NovoTamAtual is TamAtual + 1,
+	geraGrupo(Seats,TamGrupo,Rest,NovoTamAtual).
+
+geraGruposAleatorios(_,Seats,[],Seats).
+geraGruposAleatorios(MaxGroups,Seats,[Grupo|Rest],CurrentSeats):-
+	Seats - CurrentSeats < MaxGroups,
+	ElementosGrupo is Seats-CurrentSeats,
+	geraGrupo(Seats,ElementosGrupo,Grupo,0),
+	NewCurrentSeats is CurrentSeats + ElementosGrupo,
+	geraGruposAleatorios(MaxGroups,Seats,Rest,NewCurrentSeats).
+geraGruposAleatorios(MaxGroups,Seats,[Grupo|Rest],CurrentSeats):-
+	random(2,MaxGroups,ElementosGrupo),
+	geraGrupo(Seats,ElementosGrupo,Grupo,0),
+	NewCurrentSeats is CurrentSeats + ElementosGrupo,
+	geraGruposAleatorios(MaxGroups,Seats,Rest,NewCurrentSeats).
+
