@@ -36,7 +36,8 @@ manyGroupRedis(Seats, ChairsPerRow, Initials, Groups, Vars, VT) :-
 	%print(VT),nl,
 	%print(Groups),nl,
 	%print(VTList),nl,
-	labeling([minimize(VT),time_out(20000,_)],FlattenedGroups).
+	labeling([minimize(VT),time_out(20000,_)],FlattenedGroups),
+	outputseats(1, ChairsPerRow, Seats, Groups, []).
 
 initialize([],[],_).
 initialize([Group|GRest], [Initial|IRest], Seats) :-
@@ -45,12 +46,31 @@ initialize([Group|GRest], [Initial|IRest], Seats) :-
 	domain(Group, 1, Seats),
 	initialize(GRest, IRest, Seats).
 
-%TODO: visualizacao da plateia.
-%Ex: 77777*&&&&&////!!
-%	 99931111111||||||
-%	 00005555588888822
-%	 44477777.....6666
-%
+writeOutput(_, _, []).
+writeOutput(RowCounter, ChairsPerRow, [Seat|List]):-
+	(
+		RowCounter == ChairsPerRow, nl, write(Seat), writeOutput(0, ChairsPerRow, List)
+	);
+	write(Seat), NewRowCounter is RowCounter+1, writeOutput(NewRowCounter, ChairsPerRow, List).
+	
+isFromGroupNumber(Counter, [], _, _):- fail.
+isFromGroupNumber(Counter, [Group|Groups], N, Number):-
+	member(Counter, Group), Number = N;
+	N1 is N+1, isFromGroupNumber(Counter, Groups, N1, Number).
+	
+outputseats(_, ChairsPerRow, 0, _, OutputList):- nl, writeOutput(0, ChairsPerRow, OutputList).
+outputseats(Counter, ChairsPerRow, Seats, Groups, OutputList):-
+	(
+		isFromGroupNumber(Counter, Groups, 1, Number), append(OutputList, [Number], NewList);
+		append(OutputList, ['-'], NewList)
+	),	
+	NewCounter is Counter+1, NewSeats is Seats-1,
+	outputseats(NewCounter, ChairsPerRow, NewSeats, Groups, NewList).
+
+% Visualização da plateia numa só linha %
+% Exemplo: manyGroupRedis(40,[[1,3,5,7,15],[9,10,13],[20,2,14],[15,16], [40, 30,35,27]], Groups, Vars, VT). %
+% Resultado: 11111--222-33344----------5555---------- %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
 
 manyGroupsRandomized(Groups, MaxSeats, MaxGroups, ChairsPerRow) :-
 	ChairsPerRow > MaxGroups, !,
