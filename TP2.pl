@@ -49,7 +49,7 @@ initialize([Group|GRest], [Initial|IRest], Seats) :-
 writeOutput(_, _, []).
 writeOutput(RowCounter, ChairsPerRow, [Seat|List]):-
 	(
-		RowCounter == ChairsPerRow, nl, write(Seat), writeOutput(0, ChairsPerRow, List)
+		RowCounter == ChairsPerRow, nl, write(Seat), writeOutput(1, ChairsPerRow, List)
 	);
 	write(Seat), NewRowCounter is RowCounter+1, writeOutput(NewRowCounter, ChairsPerRow, List).
 	
@@ -67,12 +67,16 @@ outputseats(Counter, ChairsPerRow, Seats, Groups, OutputList):-
 	NewCounter is Counter+1, NewSeats is Seats-1,
 	outputseats(NewCounter, ChairsPerRow, NewSeats, Groups, NewList).
 
-manyGroupsRandomized(Groups, MaxSeats, MaxGroups, ChairsPerRow) :-
-	ChairsPerRow > MaxGroups, !,
-	random(MaxGroups,MaxSeats,TicketNumber),
-	geraGruposAleatorios(MaxGroups, MaxSeats,TicketNumber, Initials, 0), !,
+
+% Exemplo %
+%	manyGroupsRandomized(3, 40, 4, 10, Output).
+
+manyGroupsRandomized(NumberGroups, MaxSeats, MaxGroupSize, ChairsPerRow, Output) :-
+	ChairsPerRow > MaxGroupSize, !,
+	random(MaxGroupSize,MaxSeats,TicketNumber),
+	geraGruposAleatorios(MaxGroupSize, MaxSeats,TicketNumber, Initials, 0, NumberGroups, 0), !,
 	print(Initials), nl,
-	manyGroupRedis(MaxSeats, ChairsPerRow, Initials, Groups, _ , _).
+	manyGroupRedis(MaxSeats, ChairsPerRow, Initials, Output, _, _).
 manyGroupsRandomized(_,_,_,_) :-
     print('Error: Groups mustnt be larger than a row of chairs'), nl, fail.
 
@@ -82,16 +86,19 @@ geraGrupo(Seats,TamGrupo,[Seat|Rest],TamAtual) :-
 	NovoTamAtual is TamAtual + 1,
 	geraGrupo(Seats,TamGrupo,Rest,NovoTamAtual).
 
-geraGruposAleatorios(_,_,TicketNumber,[],TicketNumber).
-geraGruposAleatorios(MaxGroups,Seats,TicketNumber,[Grupo|Rest],CurrentSeats):-
+geraGruposAleatorios(_,_,_,[],_, GroupCounter, GroupCounter).
+%geraGruposAleatorios(_,_,TicketNumber,[],TicketNumber,_,_).
+geraGruposAleatorios(MaxGroups,Seats,TicketNumber,[Grupo|Rest],CurrentSeats, NumberGroups, GroupCounter):-
 	TicketNumber - CurrentSeats < MaxGroups, !,
 	ElementosGrupo is TicketNumber-CurrentSeats,
 	geraGrupo(Seats,ElementosGrupo,Grupo,0),
 	NewCurrentSeats is CurrentSeats + ElementosGrupo,
-	geraGruposAleatorios(MaxGroups,Seats,TicketNumber,Rest,NewCurrentSeats).
-geraGruposAleatorios(MaxGroups,Seats,TicketNumber,[Grupo|Rest],CurrentSeats):-
+	NewGroupCounter is GroupCounter + 1,
+	geraGruposAleatorios(MaxGroups,Seats,TicketNumber,Rest,NewCurrentSeats, NumberGroups, NewGroupCounter).
+geraGruposAleatorios(MaxGroups,Seats,TicketNumber,[Grupo|Rest],CurrentSeats, NumberGroups, GroupCounter):-
 	random(2,MaxGroups,ElementosGrupo),
 	geraGrupo(Seats,ElementosGrupo,Grupo,0),
 	NewCurrentSeats is CurrentSeats + ElementosGrupo,
-	geraGruposAleatorios(MaxGroups,Seats,TicketNumber,Rest,NewCurrentSeats).
+	NewGroupCounter is GroupCounter + 1,
+	geraGruposAleatorios(MaxGroups,Seats,TicketNumber,Rest,NewCurrentSeats, NumberGroups, NewGroupCounter).
 
