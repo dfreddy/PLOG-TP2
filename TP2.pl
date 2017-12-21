@@ -7,7 +7,7 @@ find_optimal(Group, GroupLength, Initial, ChairsPerRow, Vars, VT):-
 	maximum(MaxSeat,Group),
 	(MaxSeat - MinSeat) #= (GroupLength - 1), 
 
-	(MaxSeat mod ChairsPerRow) #> (MinSeat mod ChairsPerRow), %Must be on the same row - This implementation means that a group mustnt be bigger than a row
+	((MaxSeat-1) mod ChairsPerRow) #> ((MinSeat-1) mod ChairsPerRow), %Must be on the same row - This implementation means that a group mustnt be bigger than a row
 
 	variation_list(Group, Initial, Vars),
 	sum(Vars, #= , VT).
@@ -53,7 +53,7 @@ writeOutput(RowCounter, ChairsPerRow, [Seat|List]):-
 	);
 	write(Seat), NewRowCounter is RowCounter+1, writeOutput(NewRowCounter, ChairsPerRow, List).
 	
-isFromGroupNumber(Counter, [], _, _):- fail.
+isFromGroupNumber(_, [], _, _):- fail.
 isFromGroupNumber(Counter, [Group|Groups], N, Number):-
 	member(Counter, Group), Number = N;
 	N1 is N+1, isFromGroupNumber(Counter, Groups, N1, Number).
@@ -66,11 +66,6 @@ outputseats(Counter, ChairsPerRow, Seats, Groups, OutputList):-
 	),	
 	NewCounter is Counter+1, NewSeats is Seats-1,
 	outputseats(NewCounter, ChairsPerRow, NewSeats, Groups, NewList).
-
-% Visualização da plateia numa só linha %
-% Exemplo: manyGroupRedis(40,[[1,3,5,7,15],[9,10,13],[20,2,14],[15,16], [40, 30,35,27]], Groups, Vars, VT). %
-% Resultado: 11111--222-33344----------5555---------- %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
 
 manyGroupsRandomized(Groups, MaxSeats, MaxGroups, ChairsPerRow) :-
 	ChairsPerRow > MaxGroups, !,
